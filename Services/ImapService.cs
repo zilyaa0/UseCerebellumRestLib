@@ -12,6 +12,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MailKit.Net.Imap;
+using CerebellumRestLib.Queries;
+using CerebellumRestLib.Models.JSON.Entities;
+using System.IO;
+using CerebellumRestLib.Models.Enums;
 
 namespace UseCerebellumRestLib.Services
 {
@@ -27,12 +31,14 @@ namespace UseCerebellumRestLib.Services
         private readonly ITasksServiceV2 tasksService;
         private readonly IOrganizationsService organizationsService;
         private readonly IContractsService contractsService;
+        private readonly IFilesLoaderService filesLoaderService;
 
-        public ImapService(ITasksServiceV2 _tasksService, IOrganizationsService _organizationsService, IContractsService _contractsService)
+        public ImapService(ITasksServiceV2 _tasksService, IOrganizationsService _organizationsService, IContractsService _contractsService, IFilesLoaderService _filesLoaderService)
         {
             tasksService = _tasksService;
             organizationsService = _organizationsService;
             contractsService = _contractsService;
+            filesLoaderService = _filesLoaderService;
         }
         #endregion
 
@@ -57,18 +63,32 @@ namespace UseCerebellumRestLib.Services
                             var items = inbox.Fetch(uids, MessageSummaryItems.Envelope | MessageSummaryItems.BodyStructure);
                             for (int i = 0; i < items.Count; i++)
                             {
+                                var attachments = new List<Attachment>();
+                                foreach (var att in items[i].Attachments.OfType<BodyPartBasic>())
+                                {
+                                    var fileModel = new StreamFileModel(att.FileName) { FileType = Path.GetExtension(att.FileName) == ".jpg" || Path.GetExtension(att.FileName) == ",=.png" ?  FileType.Photo : FileType.File};
+                                    var part = (MimePart)client.Inbox.GetBodyPart(items[i].UniqueId, att);
+                                    using (var stream = new MemoryStream())
+                                    {
+                                        await part.Content.DecodeToAsync(stream);
+                                        stream.Position = 0;
+                                        fileModel.FileStream = stream;
+                                        var fileName = await filesLoaderService.UploadFiles(fileModel);
+                                        attachments.Add(new Attachment() { File = fileName, FileName = att.FileName });
+                                    }
+                                }
                                 var bodyPart = items[i].TextBody;
                                 var body = (TextPart)inbox.GetBodyPart(items[i].UniqueId, bodyPart);
                                 var organizations = await organizationsService.GetOrganizations(true);
-                                var contracts = await contractsService.GetСontracts(new ContractListRequest() { Limit = 5, Page = 1 });
                                 var task = new TaskCreate()
                                 {
                                     Title = items[i].Envelope.Subject,
                                     Text = body.Text.Replace(Environment.NewLine, " "),
                                     WorkTypeId = Convert.ToInt32(ConfigurationManager.AppSettings["TypeId"]),
                                     PriorityId = Convert.ToInt32(ConfigurationManager.AppSettings["PriorityId"]),
-                                    TaskDate = DateTime.Now.Ticks,
-                                    OrganizationId = organizations.FirstOrDefault().Id
+                                    TaskDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                                    OrganizationId = organizations.FirstOrDefault().Id,
+                                    Attachments = attachments,
                                 };
                                 tasksService.AddTask(task);
                             }

@@ -89,6 +89,7 @@ namespace UseCerebellumRestLib
             serviceCollection.AddTransient<ITasksServiceV2, TasksServiceV2>();
             serviceCollection.AddSingleton<IOrganizationsService, OrganizationsService>();
             serviceCollection.AddSingleton<IContractsService, ContractsService>();
+            serviceCollection.AddSingleton<IFilesLoaderService, FilesLoaderService>();
             serviceCollection.AddTransient<IUsersService, UsersService>();
 
             serviceCollection.AddOptions();
