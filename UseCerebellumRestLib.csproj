@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CerrebellumRestLib\CerebellumRestLib.csproj" />
+    <ProjectReference Include="CerrebellumRestLib\CerebellumRestLib.csproj" />
   </ItemGroup>
 
 </Project>
