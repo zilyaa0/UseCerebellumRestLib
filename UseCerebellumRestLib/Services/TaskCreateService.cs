@@ -47,7 +47,7 @@ namespace UseCerebellumRestLib.Services
         #region Public Metods
         public async Task CreateTask(IMessageSummary messageSummary, IMailFolder mailFolder)
         {
-            _logger.LogInformation($"Create new task from letter: {messageSummary.UniqueId}");
+            _logger.LogInformation($"Create new task from letter: {messageSummary.Envelope.MessageId}");
             var organizations = await _organizationsService.GetOrganizations(true);
             var body = messageSummary.TextBody;
             var bodyPart = (TextPart)mailFolder.GetBodyPart(messageSummary.UniqueId, body);
@@ -59,11 +59,11 @@ namespace UseCerebellumRestLib.Services
             taskCreate.Title = messageSummary.Envelope.Subject;
             taskCreate.Text = bodyPart.Text.Replace(Environment.NewLine, " ");
             taskCreate.OrganizationId = organizations.FirstOrDefault().Id;
-            taskCreate.Attachments = await _fileServices.UploadFiles(messageSummary);
+            taskCreate.Attachments = await _fileServices.UploadFiles(messageSummary, mailFolder);
 
             var createdTask = await _tasksService.AddTask(taskCreate);
-            await _dbService.InsetTask(messageSummary.UniqueId.ToString(), createdTask.TaskId);
+            await _dbService.InsetTask(messageSummary.Envelope.MessageId, createdTask.TaskId);
         }
         #endregion
     }
-}
+} 

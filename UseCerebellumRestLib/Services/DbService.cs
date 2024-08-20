@@ -46,7 +46,7 @@ namespace UseCerebellumRestLib.Services
                 _logger.LogInformation("Insert db task");
                 using (IDbConnection db = new NpgsqlConnection(_appSettings.DbSettings.BuildConnectionString()))
                 {
-                    var sql = $"INSERT INTO {_appSettings.DbSettings.CreateTaskTable} (letter_id, active_map_id) VALUES ('{letterId}','{taskId}');";
+                    var sql = $"INSERT INTO {_appSettings.DbSettings.CreateTaskTable} (letterid, activemapid) VALUES ('{letterId}','{taskId}');";
                     await db.QueryAsync(sql);
                 }
             }
@@ -75,7 +75,7 @@ namespace UseCerebellumRestLib.Services
                 _logger.LogInformation("Get db object");
                 using (IDbConnection db = new NpgsqlConnection(_appSettings.DbSettings.BuildConnectionString()))
                 {
-                    var sql = $"SELECT letter_id LetterId, active_map_id ActiveMapId FROM {_appSettings.DbSettings.CreateTaskTable};";
+                    var sql = $"SELECT letterid LetterId, activemapid ActiveMapId FROM {_appSettings.DbSettings.CreateTaskTable};";
                     return await db.QueryAsync<DbTask>(sql);
                 }
             }

@@ -22,4 +22,16 @@
     <ProjectReference Include="..\CerrebellumRestLib\CerebellumRestLib.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Configurations\AppSettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Configurations\nlog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Configurations\nlog.debug.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

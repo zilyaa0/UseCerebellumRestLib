@@ -67,8 +67,8 @@ namespace UseCerebellumRestLib.Services
                             var items = inbox.Fetch(uids, MessageSummaryItems.Envelope | MessageSummaryItems.BodyStructure);
                             for (int i = 0; i < items.Count; i++)
                             {
-                                if (await _dbService.FindLetterByMessageId(items[i].UniqueId.ToString()) == false)
-                                await _taskCreateService.CreateTask(items[i], inbox);
+                                if (await _dbService.FindLetterByMessageId(items[i].Envelope.MessageId) == false)
+                                    await _taskCreateService.CreateTask(items[i], inbox);
                             }
                             client.Disconnect(true);
                         }
